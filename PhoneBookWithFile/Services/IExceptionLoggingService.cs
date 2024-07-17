@@ -1,6 +1,6 @@
 ﻿namespace PhoneBookWithFile.Services
 {
-    internal interface ILoggingService
+    internal interface IExceptionLoggingService
     {
         void Log(string message);
     }

@@ -3,18 +3,20 @@
     internal class FileService : IFileService
     {
         private const string filePath = "../../../phoneBook.txt";
-        private ILoggingService loggingService;
+        private ILoggingService log;
+        private IExceptionLoggingService exception;
         public FileService()
         {
-            this.loggingService = new LoggingService();
+            this.log = new LoggingService();
+            this.exception = new ExceptionLoggingService();
 
             EnsureFileExists();
         }
         public void AddName()
         {
-            Console.WriteLine("Enter name");
+            log.Log("Enter name");
             string name = Console.ReadLine();
-            Console.WriteLine("Enter phone number");
+            log.Log("Enter phone number");
             string phoneNumber = Console.ReadLine();
             int lastId = GetLastId(filePath);
             int newId = lastId + 1;
@@ -26,66 +28,73 @@
             foreach (string phoneNumber in phoneNumers)
             {
                 string[] strings = phoneNumber.Split("/");
-                Console.WriteLine($"Name : {strings[0]} Number : {strings[1]}");
+                log.Log($"Name : {strings[0]} Number : {strings[1]}");
             }
         }
         public void UpdatePhoneNumber()
         {
-            ReadPhoneNumber();
-            Console.WriteLine("Qaysi Id kontaktni o'zgartirmoqchisiz");
-            string userInput = Console.ReadLine();
-            int userID = int.Parse(userInput);
-
-            if (CheckId(filePath, userID))
+            try
             {
-                Console.WriteLine("Enter name");
-                string name = Console.ReadLine();
-                Console.WriteLine("Enter phone number");
-                string phoneNumber = Console.ReadLine();
+                ReadPhoneNumber();
+                log.Log("Qaysi Id kontaktni o'zgartirmoqchisiz");
+                string userInput = Console.ReadLine();
+                int userID = int.Parse(userInput);
 
-                try
+                if (CheckId(filePath, userID))
                 {
+                    log.Log("Enter name");
+                    string name = Console.ReadLine();
+                    log.Log("Enter phone number");
+                    string phoneNumber = Console.ReadLine();
+
                     bool updated = UpdateById(filePath, userID, name, phoneNumber);
                     if (updated)
                     {
-                        Console.WriteLine("Updated");
+                        log.Log("Updated");
                     }
                     else
                     {
-                        Console.WriteLine("Id not found");
+                        log.Log("Id not found");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                exception.Log(ex.Message);
             }
         }
         private bool UpdateById(string filePath, int userID, string? name, string? phoneNumber)
         {
-            if (File.Exists(filePath))
+            try
             {
-                string[] lines = File.ReadAllLines(filePath);
-                bool updated = false;
-
-                for (int i = 0; i < lines.Length; i++)
+                if (File.Exists(filePath))
                 {
-                    string[] parts = lines[i].Split(".");
-                    if (parts.Length > 0 && int.TryParse(parts[0], out int id))
+                    string[] lines = File.ReadAllLines(filePath);
+                    bool updated = false;
+
+                    for (int i = 0; i < lines.Length; i++)
                     {
-                        if (id == userID)
+                        string[] parts = lines[i].Split(".");
+                        if (parts.Length > 0 && int.TryParse(parts[0], out int id))
                         {
-                            lines[i] = userID + "." + name + "/" + phoneNumber;
-                            updated = true;
-                            break;
+                            if (id == userID)
+                            {
+                                lines[i] = userID + "." + name + "/" + phoneNumber;
+                                updated = true;
+                                break;
+                            }
                         }
                     }
+                    if (updated)
+                    {
+                        File.WriteAllLines(filePath, lines);
+                    }
+                    return updated;
                 }
-                if (updated)
-                {
-                    File.WriteAllLines(filePath, lines);
-                }
-                return updated;
+            }
+            catch (Exception ex)
+            {
+                exception.Log(ex.Message);
             }
             return false;
         }
@@ -93,7 +102,7 @@
         public void DeleteContact()
         {
             ReadPhoneNumber();
-            Console.WriteLine("Qaysi Id kontaktni o'chirmoqchisiz");
+            log.Log("Qaysi Id kontaktni o'chirmoqchisiz");
             string userInput = Console.ReadLine();
             int userID = int.Parse(userInput);
 
@@ -104,16 +113,16 @@
                     bool deleted = DeleteById(filePath, userID);
                     if (deleted)
                     {
-                        Console.WriteLine("Deleted");
+                        log.Log("Deleted");
                     }
                     else
                     {
-                        Console.WriteLine("Not Deleted");
+                        log.Log("Not Deleted");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    exception.Log(ex.Message);
                 }
             }
         }
