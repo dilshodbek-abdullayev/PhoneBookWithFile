@@ -4,31 +4,29 @@
     {
         private const string filePath = "../../../phoneBook.txt";
         private ILoggingService log;
-        private IExceptionLoggingService exception;
         public FileService()
         {
             this.log = new LoggingService();
-            this.exception = new ExceptionLoggingService();
-
             EnsureFileExists();
         }
         public void AddName()
         {
-            log.Log("Enter name");
+            log.LogInfo("Enter name");
             string name = Console.ReadLine();
-            log.Log("Enter phone number");
+            log.LogInfo("Enter phone number");
             string phoneNumber = Console.ReadLine();
             int lastId = GetLastId(filePath);
             int newId = lastId + 1;
             File.AppendAllText(filePath, newId + "." + name + "/" + phoneNumber + Environment.NewLine);
         }
+
         public void ReadPhoneNumber()
         {
             string[] phoneNumers = File.ReadAllLines(filePath);
             foreach (string phoneNumber in phoneNumers)
             {
                 string[] strings = phoneNumber.Split("/");
-                log.Log($"Name : {strings[0]} Number : {strings[1]}");
+                log.LogInfo($"Name : {strings[0]} Number : {strings[1]}");
             }
         }
         public void UpdatePhoneNumber()
@@ -36,31 +34,31 @@
             try
             {
                 ReadPhoneNumber();
-                log.Log("Qaysi Id kontaktni o'zgartirmoqchisiz");
+                log.LogInfo("Qaysi Id kontaktni o'zgartirmoqchisiz");
                 string userInput = Console.ReadLine();
                 int userID = int.Parse(userInput);
 
                 if (CheckId(filePath, userID))
                 {
-                    log.Log("Enter name");
+                    log.LogInfo("Enter name");
                     string name = Console.ReadLine();
-                    log.Log("Enter phone number");
+                    log.LogInfo("Enter phone number");
                     string phoneNumber = Console.ReadLine();
 
                     bool updated = UpdateById(filePath, userID, name, phoneNumber);
                     if (updated)
                     {
-                        log.Log("Updated");
+                        log.LogInfo("Updated");
                     }
                     else
                     {
-                        log.Log("Id not found");
+                        log.LogInfo("Id not found");
                     }
                 }
             }
             catch (Exception ex)
             {
-                exception.Log(ex.Message);
+                log.LogError(ex.Message);
             }
         }
         private bool UpdateById(string filePath, int userID, string? name, string? phoneNumber)
@@ -94,7 +92,7 @@
             }
             catch (Exception ex)
             {
-                exception.Log(ex.Message);
+                log.LogError(ex.Message);
             }
             return false;
         }
@@ -102,7 +100,7 @@
         public void DeleteContact()
         {
             ReadPhoneNumber();
-            log.Log("Qaysi Id kontaktni o'chirmoqchisiz");
+            log.LogInfo("Qaysi Id kontaktni o'chirmoqchisiz");
             string userInput = Console.ReadLine();
             int userID = int.Parse(userInput);
 
@@ -113,16 +111,16 @@
                     bool deleted = DeleteById(filePath, userID);
                     if (deleted)
                     {
-                        log.Log("Deleted");
+                        log.LogInfo("Deleted");
                     }
                     else
                     {
-                        log.Log("Not Deleted");
+                        log.LogInfo("Not Deleted");
                     }
                 }
                 catch (Exception ex)
                 {
-                    exception.Log(ex.Message);
+                    log.LogError(ex.Message);
                 }
             }
         }
@@ -204,6 +202,36 @@
             if (isFilePresent is false)
             {
                 File.Create(filePath).Close();
+            }
+        }
+
+        public string AddContact(string name, string phoneNumber)
+        {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                log.LogError("Ism yoki telefon raqam xato kiritildi.To'g'ri qiymatlar kiriting");
+
+                return "";
+            }
+            else
+            {
+                string formattedContact = $"{name},{phoneNumber}";
+                File.AppendAllText(filePath, formattedContact);
+
+                return formattedContact;
+            }
+        }
+
+        public void ReadContact()
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            foreach (string line in lines)
+            {
+                string[] res = line.Split("/");
+                if (res.Length > 0)
+                {
+                    log.LogInfo($"Name {res[0]} phone number {res[1]}");
+                }
             }
         }
     }
