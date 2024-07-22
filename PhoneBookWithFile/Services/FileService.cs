@@ -131,7 +131,7 @@
             {
                 string[] lines = File.ReadAllLines(filePath);
                 bool found = false;
-                var updatedLines = new List<string>();
+                List<string> updatedLines = new List<string>();
                 foreach (string line in lines)
                 {
                     string[] parts = line.Split(".");
